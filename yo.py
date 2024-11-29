@@ -1,30 +1,28 @@
-import json
 from datetime import datetime
+import json
 import os
 
-
-def save_feedback(user_id: str, is_positive: bool, text_feedback: str = None, filename: str = "feedback.json"):
-    """
-    Save user feedback to a JSON file.
-
-    Args:
-        user_id (str): Identifier for the user
-        is_positive (bool): True for thumbs up, False for thumbs down
-        text_feedback (str, optional): User's text feedback for negative responses
-        filename (str): Name of the JSON file to store feedback
-    """
+@app.post("/rca_feedback")
+def save_feedback(
+    llm_responses: list,
+    is_positive: bool,
+    text_feedback: str = None,
+    user_id: str = None
+):
     # Create feedback entry
     feedback_entry = {
         "user_id": user_id,
         "is_positive": is_positive,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "llm_responses": llm_responses  # Now storing list of responses
     }
-
+    
     # Add text feedback if provided
     if text_feedback:
         feedback_entry["text_feedback"] = text_feedback
 
-    # Load existing feedback or create new list
+    # Load existing feedback or create a new list
+    filename = "feedback.json"
     if os.path.exists(filename):
         with open(filename, 'r') as f:
             try:
@@ -42,23 +40,3 @@ def save_feedback(user_id: str, is_positive: bool, text_feedback: str = None, fi
         json.dump(feedback_data, f, indent=2)
 
     return feedback_entry
-
-
-# Example usage:
-if __name__ == "__main__":
-    # Example thumbs up without text
-    save_feedback(
-        user_id="user123",
-        is_positive=True
-    )
-
-    # Example thumbs down with feedback
-    save_feedback(
-        user_id="user456",
-        is_positive=False,
-        text_feedback="The response was not clear enough"
-    )
-
-
-
-
