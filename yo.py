@@ -1,25 +1,29 @@
+from typing import List
+from pydantic import BaseModel
 from datetime import datetime
 import json
 import os
 
-@app.post("/rca_feedback")
-def save_feedback(
-    llm_responses: list,
-    is_positive: bool,
-    text_feedback: str = None,
+# Define the model for feedback data
+class FeedbackInput(BaseModel):
+    llm_responses: List[str]
+    is_positive: bool
+    text_feedback: str = None
     user_id: str = None
-):
+
+@app.post("/rca_feedback")
+def save_feedback(feedback: FeedbackInput):
     # Create feedback entry
     feedback_entry = {
-        "user_id": user_id,
-        "is_positive": is_positive,
+        "user_id": feedback.user_id,
+        "is_positive": feedback.is_positive,
         "timestamp": datetime.now().isoformat(),
-        "llm_responses": llm_responses  # Now storing list of responses
+        "llm_responses": feedback.llm_responses
     }
-    
+
     # Add text feedback if provided
-    if text_feedback:
-        feedback_entry["text_feedback"] = text_feedback
+    if feedback.text_feedback:
+        feedback_entry["text_feedback"] = feedback.text_feedback
 
     # Load existing feedback or create a new list
     filename = "feedback.json"
